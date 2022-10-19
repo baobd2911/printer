@@ -143,7 +143,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         bluetoothScanning();
       }
       else if (call.method.equals("action_start_scan")) {
-        scan();
+        scan(result);
       }
     } catch (Exception e) {
       result.error("500", "Server Error", e.getMessage());
@@ -611,17 +611,17 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
       if (BluetoothDevice.ACTION_FOUND.equals(action)) {
         if(device != null){
-//          if(device.getBluetoothClass().getDeviceClass() == 1664){
-//            _channel.invokeMethod(ACTION_NEW_DEVICE,toMap(device));
-//            check = true;
-//          }
-          _channel.invokeMethod(ACTION_NEW_DEVICE,toMap(device));
+          if(device.getBluetoothClass().getDeviceClass() == 1664){
+            _channel.invokeMethod(ACTION_NEW_DEVICE,toMap(device));
+            check = true;
+          }
+//          _channel.invokeMethod(ACTION_NEW_DEVICE,toMap(device));
         }
       }else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
-//        if(!check){
-//          channel.invokeMethod(ACTION_NO_PRINTER,null);
-//        }
-//        check = false;
+        if(!check){
+          channel.invokeMethod(ACTION_NO_PRINTER,null);
+        }
+        check = false;
       }
     }
   };
@@ -634,11 +634,13 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     map.put("name", name);
     map.put("address",address);
 
+    System.out.println(map);
+
     return map;
   }
 
 
-  private void scan() {
+  private void scan(Result result) {
     if(!mBluetoothAdapter.isDiscovering()){
       mBluetoothAdapter.cancelDiscovery();
     }
@@ -649,6 +651,18 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
     context.registerReceiver(receiver, filter);
 
+    pairedDevices = mBluetoothAdapter.getBondedDevices();
+    List<Map<String,String>> mapList = new ArrayList<>();
+    for (BluetoothDevice bt : pairedDevices) {
+      Map<String, String> map = new HashMap<String, String>();
+      map.put("name", bt.getName());
+      map.put("address",bt.getAddress());
+      mapList.add(map);
+      toMap(bt);
+      System.out.println(bt);
+    }
+
+    result.success(mapList);
   }
 
 }
