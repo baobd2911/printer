@@ -1,20 +1,16 @@
-import 'package:clv_nhacvo_print/src/event_print_pos.dart';
+import 'dart:typed_data';
+
+import 'package:clv_nhacvo_print/src/bluetooth_print_model.dart';
 import 'package:clv_nhacvo_print/src/bluetooth_code.dart';
+import 'package:clv_nhacvo_print/src/event_print_pos.dart';
 import 'package:clv_nhacvo_print/src/flutter_scan_bluetooth.dart';
 import 'package:flutter/material.dart';
-import 'DevicesModel.dart';
-
-import 'dart:collection';
-import 'dart:typed_data';
-import 'dart:math' as math;
-
-import 'package:bluetooth_print/bluetooth_print.dart';
-import 'package:bluetooth_print/bluetooth_print_model.dart';
-import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
 import 'package:measure_size/measure_size.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:image/image.dart' as img;
+
+import 'DevicesModel.dart';
 
 void main() {
   runApp(const MyApp());
@@ -64,7 +60,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
+  // BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
 
   String _data = '';
   bool _scanning = false;
@@ -89,22 +85,24 @@ class _MyHomePageState extends State<MyHomePage> {
     _bluetooth.devices.listen((device) {
       _data = device.name;
       setState(() {
-        if(device.name.endsWith("_noDevice")){
+        if (device.name.endsWith("_noDevice")) {
           print('No Device !!!!!');
-        }else{
-          if(list.isEmpty){
-            DevicesModel model = DevicesModel(device.name,device.address,device.paired);
+        } else {
+          if (list.isEmpty) {
+            DevicesModel model =
+            DevicesModel(device.name, device.address, device.paired);
             list.add(model);
-          }else{
+          } else {
             bool check = false;
-            for(int i=0; i<list.length; i++){
-              if(list[i].address.endsWith(device.address)){
+            for (int i = 0; i < list.length; i++) {
+              if (list[i].address.endsWith(device.address)) {
                 check = true;
                 return;
               }
             }
-            if(!check){
-              DevicesModel model = DevicesModel(device.name,device.address,device.paired);
+            if (!check) {
+              DevicesModel model =
+              DevicesModel(device.name, device.address, device.paired);
               list.add(model);
             }
           }
@@ -118,15 +116,12 @@ class _MyHomePageState extends State<MyHomePage> {
     //     _data += 'scan stopped\n';
     //   });
     // });
-
   }
 
   Future<void> initBluetooth() async {
-    bluetoothPrint.startScan(
-        timeout: const Duration(seconds: 4)); // scan trong 4s, tìm device
 
-    bool isConnected = await bluetoothPrint.isConnected;
-    bluetoothPrint.state.listen((state) {
+    bool isConnected = await _bluetooth.isConnected;
+    _bluetooth.state.listen((state) {
       print('cur device status: $state');
       switch (state) {
         case BluetoothCode.CONNECTED:
@@ -198,13 +193,13 @@ class _MyHomePageState extends State<MyHomePage> {
         _connected = true;
       });
     }
-    bluetoothPrint.stopScan();
+    // bluetoothPrint.stopScan();
   }
 
   List<DevicesModel> list = [];
   bool isCheckState = false;
 
-  void _onConnect(String nameDevice,String addressDevice) async {
+  void _onConnect(String nameDevice, String addressDevice) async {
     // chỗ này đọc lệnh chắc mọi người cũng hiểu được :v
     _device = BluetoothDevice();
     _device.name = nameDevice;
@@ -213,7 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _device.connected = true;
 
     if (_device?.address != null) {
-      await bluetoothPrint.connect(_device);
+      await _bluetooth.connect(_device);
     } else {
       setState(() {
         tips = 'Vui lòng chọn thiết bị';
@@ -223,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onDisconnect() async {
-    await bluetoothPrint.disconnect();
+    // await bluetoothPrint.disconnect();
     setState(() {
       _connected = false;
     });
@@ -245,27 +240,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _scanDevice() async {
     String listDevice = await EventPrintPos.scanBluetooth();
-    if(listDevice != ""){
+    if (listDevice != "") {
       List<dynamic> devices = listDevice.split("&");
-      for(dynamic device in devices){
+      for (dynamic device in devices) {
         String text = device.toString();
 
         List<dynamic> deviceInfo = text.split("|");
-        DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1],deviceInfo[2]);
+        DevicesModel model =
+        DevicesModel(deviceInfo[0], deviceInfo[1], deviceInfo[2]);
         list.add(model);
       }
-    }else{
+    } else {
       list = [];
       print('Không có máy in nào !!!');
     }
   }
 
-
   bool isChoose = false;
   void onChangeStateBlue(value) async {
     if (value) {
       String scan = await EventPrintPos.onBluetooth();
-      if(scan.endsWith("scan")){
+      if (scan.endsWith("scan")) {
         // String listDevice = await EventPrintPos.scanBluetooth();
         // if(listDevice != ""){
         //   List<dynamic> devices = listDevice.split("&");
@@ -317,8 +312,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: RefreshIndicator(
-        onRefresh: () =>
-            bluetoothPrint.startScan(timeout: Duration(seconds: 4)),
+        onRefresh: () {},
         child: SizedBox(
           width: double.infinity,
           // Center is a layout widget. It takes a single child and positions it
@@ -396,24 +390,24 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-      floatingActionButton: StreamBuilder<bool>(
-        stream: bluetoothPrint.isScanning,
-        initialData: false,
-        builder: (c, snapshot) {
-          if (snapshot.data) {
-            return FloatingActionButton(
-              child: const Icon(Icons.stop),
-              onPressed: () => bluetoothPrint.stopScan(),
-              backgroundColor: Colors.red,
-            );
-          } else {
-            return FloatingActionButton(
-                child: const Icon(Icons.search),
-                onPressed: () => bluetoothPrint.startScan(
-                    timeout: const Duration(seconds: 4)));
-          }
-        },
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // floatingActionButton: StreamBuilder<bool>(
+      //   stream: bluetoothPrint.isScanning,
+      //   initialData: false,
+      //   builder: (c, snapshot) {
+      //     if (snapshot.data) {
+      //       return FloatingActionButton(
+      //         child: const Icon(Icons.stop),
+      //         onPressed: () => bluetoothPrint.stopScan(),
+      //         backgroundColor: Colors.red,
+      //       );
+      //     } else {
+      //       return FloatingActionButton(
+      //           child: const Icon(Icons.search),
+      //           onPressed: () => bluetoothPrint.startScan(
+      //               timeout: const Duration(seconds: 4)));
+      //     }
+      //   },
+      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -446,15 +440,15 @@ class _MyHomePageState extends State<MyHomePage> {
       img.Image fixedImage;
       fixedImage = img.copyRotate(originalImage, -90);
       var result =
-      await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage),1);
-      var _sendData = <String, dynamic>{
-        "bitmapInput": result,
-        "printerDpi": 190,
-        "printerWidthMM": int.parse('80'),
-        "printerNbrCharactersPerLine": 32,
-        "widthMax": 580,
-        "heightMax": 400,
-      };
+      await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage), 1);
+      // var _sendData = <String, dynamic>{
+      //   "bitmapInput": result,
+      //   "printerDpi": 190, //190
+      //   "printerWidthMM": int.parse('80'),
+      //   "printerNbrCharactersPerLine": 32,
+      //   "widthMax": 580, //580
+      //   "heightMax": 400, //400
+      // };
       print('TEXT: ' + result["message"]);
       print(result);
     }).catchError((onError) {
@@ -493,45 +487,55 @@ class _MyHomePageState extends State<MyHomePage> {
         ));
   }
 
-  Widget deviceBluetooth(){
+  Widget deviceBluetooth() {
     return Row(
       children: <Widget>[
         Expanded(
           child: SizedBox(
             child: list.isEmpty
                 ? Center(child: Text("No printer !!!"))
-                :ListView.builder(
+                : ListView.builder(
               shrinkWrap: true,
               itemCount: list.length,
               itemBuilder: (context, index) {
                 return Card(
-                  child: list[index].state == true ?
-                  ListTile(
-                    title:  Text(list[index].name == "null" ? " Unknown" : " " +  list[index].name,style: TextStyle(color: Colors.grey,fontSize: 13)),
-                    leading: Icon( Icons.check_circle),
-                    trailing: Icon( Icons.check_circle),
-                    onTap: (){
-                      _onConnect(list[index].name,list[index].address);
+                  child: list[index].state == true
+                      ? ListTile(
+                    title: Text(
+                        list[index].name == "null"
+                            ? " Unknown"
+                            : " " + list[index].name,
+                        style: TextStyle(
+                            color: Colors.grey, fontSize: 13)),
+                    leading: Icon(Icons.check_circle),
+                    trailing: Icon(Icons.check_circle),
+                    onTap: () {
+                      _onConnect(
+                          list[index].name, list[index].address);
                     },
                   )
                       : ListTile(
-                    title:  Text(list[index].name == "null" ? " Unknown" : " " +  list[index].name,style: TextStyle(color: Colors.grey,fontSize: 13)),
-                    leading: Icon( Icons.print),
-                    trailing: Icon( Icons.check_circle),
-                    onTap: (){
-                      _onConnect(list[index].name,list[index].address);
+                    title: Text(
+                        list[index].name == "null"
+                            ? " Unknown"
+                            : " " + list[index].name,
+                        style: TextStyle(
+                            color: Colors.grey, fontSize: 13)),
+                    leading: Icon(Icons.print),
+                    trailing: Icon(Icons.check_circle),
+                    onTap: () {
+                      _onConnect(
+                          list[index].name, list[index].address);
                     },
                   ),
                 );
               },
             ),
-
           ),
         ),
       ],
     );
   }
-
 
   TableBorder BoderCustom() {
     return TableBorder.all(

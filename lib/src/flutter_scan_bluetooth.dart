@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clv_nhacvo_print/src/bluetooth_print_model.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 
@@ -31,7 +32,9 @@ class BluetoothDeviceScan {
 class FlutterScanBluetooth {
   static final _singleton = FlutterScanBluetooth._();
   final MethodChannel _channel = const MethodChannel('flutter_scan_bluetooth');
-  final List<BluetoothDeviceScan> _pairedDevices = [];
+  static const MethodChannel channelConnect = MethodChannel('com.clv.demo/connect');
+  static const EventChannel _stateChannel = EventChannel('stateBluetooth');
+  List<BluetoothDeviceScan> _pairedDevices = [];
   final StreamController<BluetoothDeviceScan> _controller = StreamController.broadcast();
   final StreamController<bool> _scanStopped = StreamController.broadcast();
 
@@ -62,7 +65,20 @@ class FlutterScanBluetooth {
     await _channel.invokeMethod('action_request_permissions');
   }
 
+  Future<dynamic> connect(BluetoothDevice device) =>
+      channelConnect.invokeMethod('connectDevice', device.toJson());
+
+  Future<bool> get isConnected async =>
+      await _channel.invokeMethod('isConnected');
+
+  Stream<int> get state async* {
+    yield await _channel.invokeMethod('state').then((s) => s);
+
+    yield* _stateChannel.receiveBroadcastStream().map((s) => s);
+  }
+
   Future<void> startScan() async {
+    _pairedDevices = [];
     final bondedDevices = await _channel.invokeMethod('action_start_scan');
     for (var device in bondedDevices) {
       final d = BluetoothDeviceScan(device['name'], device['address'], paired: true);
