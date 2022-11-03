@@ -114,6 +114,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   }
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
+    checkPermission();
     globalChannelResult = result;
     try {
       Map<String, Object> arguments = call.arguments();
@@ -313,7 +314,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 //          }
 //          else
 //          {
-            heightTemp = 900 * countPage;
+            heightTemp = 650 * countPage;
 //          }
 
             System.out.println( "-----------------Start--------------------");
@@ -645,6 +646,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           _channel.invokeMethod(ACTION_NO_PRINTER,null);
         }
         check = false;
+        context.unregisterReceiver(receiver);
       }
     }
   };
