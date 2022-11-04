@@ -301,8 +301,10 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
             byte[]  bitMapData = bitmapInput;// stream.toByteArray()
             Bitmap decodedByte = BitmapFactory.decodeByteArray(bitMapData, 0, bitMapData.length);
-            int widthTemp = 580;
-            int heightTemp = decodedByte.getHeight();
+            double width1 = decodedByte.getWidth();
+            double height1 = decodedByte.getHeight();
+            double widthTemp = 580;
+            double heightTemp = 580.0/(width1/height1);
             System.out.println(widthTemp);
             System.out.println(heightTemp);
 
@@ -321,10 +323,10 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
             System.out.println( "-----------------Start--------------------");
             System.out.println( "Input:  " + widthMax + " || " + heightMax);
-            System.out.println( "Current:  " + widthTemp + " || " + heightTemp);
+            System.out.println( "Current:  " + (int)widthTemp + " || " + (int)heightTemp);
             System.out.println( "------------------End---------------------");
 
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(decodedByte, widthTemp, heightTemp, false);
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(decodedByte, (int)widthTemp, (int)heightTemp, false);
             decodedByte.recycle();
             int width = resizedBitmap.getWidth();
             int height = resizedBitmap.getHeight();
