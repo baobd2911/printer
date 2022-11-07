@@ -306,7 +306,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
             System.out.println(width1);
             System.out.println(height1);
             double widthTemp = 570;
-            double heightTemp = 570.0*(height1/width1);
+            double heightTemp = 570.0/(height1/width1);
             System.out.println(widthTemp);
             System.out.println(heightTemp);
 
