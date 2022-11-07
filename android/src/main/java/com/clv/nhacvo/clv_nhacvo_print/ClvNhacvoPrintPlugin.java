@@ -303,8 +303,10 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
             Bitmap decodedByte = BitmapFactory.decodeByteArray(bitMapData, 0, bitMapData.length);
             double width1 = decodedByte.getWidth();
             double height1 = decodedByte.getHeight();
-            double widthTemp = 580;
-            double heightTemp = 580.0/(width1/height1);
+            System.out.println(width1);
+            System.out.println(height1);
+            double widthTemp = 570;
+            double heightTemp = 570.0/(width1/height1);
             System.out.println(widthTemp);
             System.out.println(heightTemp);
 
